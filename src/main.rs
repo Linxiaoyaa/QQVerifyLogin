@@ -17,9 +17,9 @@ async fn main() {
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     tracing::info!("服务器监听于 {}", addr);
-    tracing::info!("通过/verify/submit_ticket来进行第一步验证");
-    tracing::info!("通过/verify/submit_phone_number来进行第二步验证");
-    tracing::info!("通过/verify/submit_auth来进行第三步验证");
+    tracing::info!("/verify/submit_ticket");
+    tracing::info!("/verify/submit_phone_number");
+    tracing::info!("/verify/submit_auth");
     tracing::info!("Github：https://github.com/Linxiaoyaa/QQVerifyLogin");
     tracing::info!("作者：Linxiaoyaa");
     tracing::info!("交流群：957874828");
