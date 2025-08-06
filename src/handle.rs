@@ -1,5 +1,4 @@
 use std::net::SocketAddr;
-use std::ptr::null;
 use axum::extract::ConnectInfo;
 use axum::Json;
 use serde_json::{Value, json};
@@ -68,6 +67,7 @@ pub async fn chk_captcha( version:String, sig:String, ticket:String, randstr:Str
     }
 }
 pub async fn chk_risk( version:String, sig:String, qimei:String, randstr:String, guid:String,appid:String) ->APIResult<Value> {
+    tracing::info!(version, sig, qimei, randstr, guid, appid);
     let client = Client::new();
     let body = json!({
          "com": {
@@ -134,6 +134,7 @@ pub async fn chk_risk( version:String, sig:String, qimei:String, randstr:String,
     }
 }
 pub async fn query_login_verify_method( version:String, sig:String, randstr:String, guid:String) ->APIResult<Value> {
+    tracing::info!(version, sig, randstr, guid);
     let client = Client::new();
     let body = json!({
              "com": {
@@ -190,6 +191,7 @@ pub async fn query_login_verify_method( version:String, sig:String, randstr:Stri
     }
 }
 pub async fn query_bound_phone( version:String, sig:String, randstr:String, guid:String) ->APIResult<Value> {
+    tracing::info!(version, sig, randstr, guid);
     let client = Client::new();
     let body = json!({
              "com": {
@@ -246,6 +248,7 @@ pub async fn query_bound_phone( version:String, sig:String, randstr:String, guid
     }
 }
 pub async fn verify_mbphone( version:String, sig:String, randstr:String, guid:String,mobile:String,area_code:String) ->APIResult<Value> {
+    tracing::info!(version, sig, randstr, guid, mobile, area_code);
     let client = Client::new();
     let body = json!({
              "com": {
@@ -304,23 +307,24 @@ pub async fn verify_mbphone( version:String, sig:String, randstr:String, guid:St
     }
 }
 pub async fn get_sms( version:String, sig:String, randstr:String, guid:String,area_code:String,phone_num:String) ->APIResult<Value> {
+    tracing::info!(version, sig, randstr, guid, area_code, phone_num);
     let client = Client::new();
     let body = json!({
-              "com": {
-     "src": 1,
-     "scene": 100331,
-     "platform": 2,
-     "version": version,
-     "unlgn": {
-         "uin": 0,
-         "sig": sig,
-         "sigType": 1,
-         "randstr": randstr,
-     }
- },
- "way": 4,
- "mobile": phone_num,
- "areaCode": area_code
+                "com": {
+                    "src": 1,
+                    "scene": 100331,
+                    "platform": 2,
+                    "version": version,
+                    "unlgn": {
+                        "uin": 0,
+                        "sig": sig,
+                        "sigType": 1,
+                        "randstr": randstr,
+                    }
+              },
+                "way": 4,
+                "mobile": phone_num,
+                "areaCode": area_code
     });
     let getsmsres = match client.post("https://accounts.qq.com/login/limit/proxy/domain/qq110.qq.com/v3/getsms?uin=0&bkn=")
         .json(&body)
@@ -363,6 +367,7 @@ pub async fn get_sms( version:String, sig:String, randstr:String, guid:String,ar
     }
 }
 pub async fn chk_sms( version:String, sig:String, randstr:String, guid:String,phone_num:String,area_code:String) ->APIResult<Value> {
+    tracing::info!(version, sig, randstr, guid, area_code);
     let client = Client::new();
     let body = json!({
              "com": {
@@ -422,6 +427,7 @@ pub async fn chk_sms( version:String, sig:String, randstr:String, guid:String,ph
     }
 }
 pub async fn auth_diff_password( version:String, sig:String, randstr:String, guid:String,qimei:String,phone_num:String,appid:String,key:Value) ->APIResult<Value> {
+    tracing::info!(version, sig, randstr, guid, phone_num, appid);
     let client = Client::new();
     let body = json!({
               "com": {
@@ -499,7 +505,8 @@ pub async fn auth_diff_password( version:String, sig:String, randstr:String, gui
 
 
 pub async fn login_verify1(connect_info: ConnectInfo<SocketAddr>,Json(input):Json<Value>)->APIResult<Value>{
-    tracing::trace!("IP：{} 开始处理验证",connect_info.0);
+    tracing::info!("IP：{} 开始处理第一步验证",connect_info.0);
+
     let param1 = match &input {
         Object(map)=>   map,
         _ => {
@@ -533,4 +540,59 @@ pub async fn login_verify1(connect_info: ConnectInfo<SocketAddr>,Json(input):Jso
      query_bound_phone (version.to_string(),sig.to_string(),randstr.to_string(),guid.to_string()).await
 }
 
+pub async fn login_verify2(connect_info: ConnectInfo<SocketAddr>,Json(input):Json<Value>)->APIResult<Value>{
+    tracing::info!("IP：{} 开始处理第二步验证",connect_info.0);
 
+    let param1 = match &input {
+        Object(map)=>   map,
+        _=>{
+            return APIResult{
+                code:400,
+                reqststus:"Must Json Params".to_string(),
+                data:json!(null)
+            };
+        }
+    };
+    let version = param1.get("version").and_then(|t| t.as_str()).unwrap_or("9.2.5");
+    let sig = param1.get("sig").and_then(|t| t.as_str()).unwrap_or("");
+    let randomstr = param1.get("randstr").and_then(|t| t.as_str()).unwrap_or("");
+    let guid = param1.get("guid").and_then(|t| t.as_str()).unwrap_or("");
+    let area_code = param1.get("areaCode").and_then(|t| t.as_str()).unwrap_or("");
+    let mobile = param1.get("mobile").and_then(|t| t.as_str()).unwrap_or("");
+    let phone_num = param1.get("phoneNum").and_then(|t| t.as_str()).unwrap_or("");
+    let verifymbphoneres = verify_mbphone(version.to_string(),sig.to_string(),randomstr.to_string(),guid.to_string(),mobile.to_string(),area_code.to_string()).await;
+    if verifymbphoneres.data.get("retcode").and_then(|t1| {t1.as_i64()}).unwrap_or(-1) != 0 {
+        return verifymbphoneres
+    };
+    let  get_sms_res = get_sms(version.to_string(),sig.to_string(),randomstr.to_string(),guid.to_string(),area_code.to_string(),phone_num.to_string()).await;
+    get_sms_res
+}
+pub async fn login_verify3(connect_info: ConnectInfo<SocketAddr>,Json(input):Json<Value>)->APIResult<Value>{
+    tracing::info!("IP：{} 开始处理第三步验证",connect_info.0);
+
+    let param1 = match &input {
+        Object(map)=>   map,
+        _=>{
+            return APIResult{
+                code:400,
+                reqststus:"Must Json Params".to_string(),
+                data:json!(null)
+            };
+        }
+    };
+    let version = param1.get("version").and_then(|t| t.as_str()).unwrap_or("9.2.5");
+    let sig = param1.get("sig").and_then(|t| t.as_str()).unwrap_or("");
+    let randomstr = param1.get("randstr").and_then(|t| t.as_str()).unwrap_or("");
+    let guid = param1.get("guid").and_then(|t| t.as_str()).unwrap_or("");
+    let area_code = param1.get("areaCode").and_then(|t| t.as_str()).unwrap_or("");
+    let appid = param1.get("appid").and_then(|t| t.as_str()).unwrap_or("");
+    let phone_num = param1.get("phoneNum").and_then(|t| t.as_str()).unwrap_or("");
+    let qimei=param1.get("qimei").and_then(|t| t.as_str()).unwrap_or("");
+    let chk_smsres = chk_sms(version.to_string(),sig.to_string(),randomstr.to_string(),guid.to_string(),phone_num.to_string(),area_code.to_string()).await;
+    if chk_smsres.data.get("retcode").and_then(|t1| {t1.as_i64()}).unwrap_or(-1) != 0 {
+        return chk_smsres
+    };
+    let key = chk_smsres.data;
+    let  auth_diff_password_res = auth_diff_password(version.to_string(),sig.to_string(),randomstr.to_string(),guid.to_string(),qimei.to_string(),phone_num.to_string(),appid.to_string(),key).await;
+    auth_diff_password_res
+}
