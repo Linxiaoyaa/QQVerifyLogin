@@ -17,9 +17,12 @@ async fn main() {
         .init();
 
 
-    tracing::debug!("开始初始化...");
+
     let addr = SocketAddr::from(([0,0,0,0],3000));
     tracing::info!("服务器监听于 {}", addr);
+    tracing::info!("通过/verify/submit_ticket来进行第一步验证");
+    tracing::info!("通过/verify/submit_phone_number来进行第二步验证");
+    tracing::info!("通过/verify/submit_auth来进行第三步验证");
     let http_listener=tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(
         http_listener,
