@@ -523,7 +523,7 @@ pub async fn auth_diff_password(
                     }
                 }
     });
-    //tracing::info!("AuthKey：{}",key);
+    tracing::info!("AuthKey：{}", key);
     //tracing::info!("AuthBody：{}",body);
     let auth_diff_passwordres = match client.post("https://accounts.qq.com/login/limit/proxy/domain/qq110.qq.com/v3/auth_diff_password?uin=0&bkn=")
         .json(&body)
