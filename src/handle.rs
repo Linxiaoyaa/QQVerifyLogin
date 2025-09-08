@@ -13,6 +13,8 @@ pub async fn chk_captcha(
     ticket: String,
     randstr: String,
     guid: String,
+    qimei: String,
+    subappid: String,
 ) -> APIResult<Value> {
     let client = Client::new();
     let body = json!({
@@ -26,7 +28,22 @@ pub async fn chk_captcha(
                  "sig": sig,
                  "sigType": 1,
                  "randstr": randstr,
-             }
+             },
+            "device":{
+                "guid": guid,
+                "qimei": qimei,
+                "qimei36": qimei,
+                "subappid": subappid,
+                "platform": "Android",
+                "brand": "SAMSUNG",
+                "model": "SM-S9210",
+                "bssid": "",
+                "devInfo": "SAMSUNG SM-S9210",
+                "sysVersion": "32",
+                "isGray": "false",
+                "patchVersion": 0,
+                "deviceLevel": 2
+            }
          },
          "ticket": ticket,
          "randStr": randstr,
@@ -36,7 +53,12 @@ pub async fn chk_captcha(
         .json(&body)
         .header("qname-service", "1935233:65536")
         .header("qname-space", "Production")
-        .header("Cookie", "uin=; p_uin=; p_uid=; login_key_set_failed=AlreadyLogout")
+        .header("Cookie", "uin=; p_uin=; p_uid=")
+        .header("X-Requested-With","com.tencent.mobileqq")
+        .header("Sec-Fetch-Site","same-orgin")
+        .header("Sec-Fetch-Mode","cors")
+        .header("Sec-Fetch-Dest","empty")
+        .header("Referer","https://accounts.qq.com/login/attack?_wv=3&_wwv=128&envfrom=diff-protect&uin=11208120&sig=UC2DWj75QsUWR5ZSVuxLVGMc%2BJm606v50V8MYN1pFZyDWzFWsHZ2jqLYSA1zgubmgXkVFEx2P%2B0Y%2B8lJD5lmQizta%2F2aCwWnzsx3nSINpsK5ggRdyhs%2FbBmdWLlcnE5m9i1sjVDVoXMHdfb2YPZuiUl5qISSC8nQKX6I%2BNiRocIPbtaAfh6FMgnDVqe7I2HXn6EQlkUrdN7jaeJdsYA7LoLZ%2Fnk2OJsN%2FQH4JWwEnjoHQ%2F7dGLT%2Fvcmb9SxGAskdweRTqHrdcj0xubRxJgyMEHVKts93Gu314e1%2B6IKrn3O90wieXfPJDgot04xsCKAhsBQbetQ7332YVdyehL6OYCbDJuBmW3yX16AdPAN1KLk%3D")
         .send()
         .await
     {
@@ -77,43 +99,58 @@ pub async fn chk_risk(
     qimei: String,
     randstr: String,
     guid: String,
-    appid: String,
+    subappid: String,
+    timestamp: i64,
 ) -> APIResult<Value> {
-    tracing::info!(version, sig, qimei, randstr, guid, appid);
+    tracing::info!(version, sig, qimei, randstr, guid, subappid);
     let client = Client::new();
     let body = json!({
          "com": {
-    "src": 1,
-    "scene": 101107,
-    "platform": 2,
-    "version": version,
-    "unlgn": {
-        "uin": 0,
-        "sig": sig,
-        "sigType": 1,
-        "randstr": randstr,
-    },
-    "device": {
-        "guid": guid,
-        "qimei": qimei,
-        "qimei36": qimei,
-        "subappid": appid,
-        "platform": "Android",
-        "brand": "March",
-        "model": "7",
-        "bssid": "",
-        "devInfo": ""
-    }
-    }});
+            "src": 1,
+            "scene": 101107,
+            "platform": 2,
+            "version": version,
+            "unlgn": {
+                "uin": 0,
+                "sig": sig,
+                "sigType": 1,
+                "randstr": randstr,
+            },
+            "device": {
+                "guid": guid,
+                "qimei": qimei,
+                "qimei36": qimei,
+                "subappid": subappid,
+                "platform": "Android",
+                "brand": "SAMSUNG",
+                "model": "SM-S9210",
+                "bssid": "",
+                "devInfo": "SAMSUNG SM-S9210",
+                "sysVersion": "32",
+                "isGray": "false",
+                "patchVersion": 0,
+                "deviceLevel": 2
+            }
+        },
+        "type": 0,
+        "ticket": {
+            "ticket0": {
+            "guid": guid,
+            "logintime": timestamp
+            }
+        }
+    });
     let chkriskres = match client
         .post("https://accounts.qq.com/login/limit/proxy/domain/qq110.qq.com/v3/chkrisk?uin=0&bkn=")
         .json(&body)
         .header("qname-service", "1935233:65536")
         .header("qname-space", "Production")
-        .header(
-            "Cookie",
-            "uin=; p_uin=; p_uid=; login_key_set_failed=AlreadyLogout",
-        )
+        .header("Cookie", "uin=; p_uin=; p_uid=")
+        .header("X-Requested-With","com.tencent.mobileqq")
+        .header("Sec-Fetch-Site","same-orgin")
+        .header("Sec-Fetch-Mode","cors")
+        .header("Sec-Fetch-Dest","empty")
+        .header("Referer","https://accounts.qq.com/login/attack?_wv=3&_wwv=128&envfrom=diff-protect&uin=11208120&sig=UC2DWj75QsUWR5ZSVuxLVGMc%2BJm606v50V8MYN1pFZyDWzFWsHZ2jqLYSA1zgubmgXkVFEx2P%2B0Y%2B8lJD5lmQizta%2F2aCwWnzsx3nSINpsK5ggRdyhs%2FbBmdWLlcnE5m9i1sjVDVoXMHdfb2YPZuiUl5qISSC8nQKX6I%2BNiRocIPbtaAfh6FMgnDVqe7I2HXn6EQlkUrdN7jaeJdsYA7LoLZ%2Fnk2OJsN%2FQH4JWwEnjoHQ%2F7dGLT%2Fvcmb9SxGAskdweRTqHrdcj0xubRxJgyMEHVKts93Gu314e1%2B6IKrn3O90wieXfPJDgot04xsCKAhsBQbetQ7332YVdyehL6OYCbDJuBmW3yX16AdPAN1KLk%3D")
         .send()
         .await
     {
@@ -151,6 +188,8 @@ pub async fn query_login_verify_method(
     sig: String,
     randstr: String,
     guid: String,
+    qimei: String,
+    subappid: String,
 ) -> APIResult<Value> {
     tracing::info!(version, sig, randstr, guid);
     let client = Client::new();
@@ -165,14 +204,35 @@ pub async fn query_login_verify_method(
                     "sig": sig,
                     "sigType": 1,
                     "randstr": randstr
+                },
+                "device": {
+                    "guid": guid,
+                    "qimei": qimei,
+                    "qimei36": qimei,
+                    "subappid": subappid,
+                    "platform": "Android",
+                    "brand": "SAMSUNG",
+                    "model": "SM-S9210",
+                    "bssid": "",
+                    "devInfo": "SAMSUNG SM-S9210",
+                    "sysVersion": "32",
+                    "isGray": "false",
+                    "patchVersion": 0,
+                    "deviceLevel": 2
                 }
+
              }
     });
     let queryloginverifymethodres = match client.post("https://accounts.qq.com/login/limit/proxy/domain/qq110.qq.com/v3/queryloginverifymethod?uin=0&bkn=")
         .json(&body)
         .header("qname-service", "1935233:65536")
         .header("qname-space", "Production")
-        .header("Cookie", "uin=; p_uin=; p_uid=; login_key_set_failed=AlreadyLogout")
+        .header("Cookie", "uin=; p_uin=; p_uid=")
+        .header("X-Requested-With","com.tencent.mobileqq")
+        .header("Sec-Fetch-Site","same-orgin")
+        .header("Sec-Fetch-Mode","cors")
+        .header("Sec-Fetch-Dest","empty")
+        .header("Referer","https://accounts.qq.com/login/attack?_wv=3&_wwv=128&envfrom=diff-protect&uin=11208120&sig=UC2DWj75QsUWR5ZSVuxLVGMc%2BJm606v50V8MYN1pFZyDWzFWsHZ2jqLYSA1zgubmgXkVFEx2P%2B0Y%2B8lJD5lmQizta%2F2aCwWnzsx3nSINpsK5ggRdyhs%2FbBmdWLlcnE5m9i1sjVDVoXMHdfb2YPZuiUl5qISSC8nQKX6I%2BNiRocIPbtaAfh6FMgnDVqe7I2HXn6EQlkUrdN7jaeJdsYA7LoLZ%2Fnk2OJsN%2FQH4JWwEnjoHQ%2F7dGLT%2Fvcmb9SxGAskdweRTqHrdcj0xubRxJgyMEHVKts93Gu314e1%2B6IKrn3O90wieXfPJDgot04xsCKAhsBQbetQ7332YVdyehL6OYCbDJuBmW3yX16AdPAN1KLk%3D")
         .send()
         .await
     {
@@ -237,7 +297,12 @@ pub async fn query_bound_phone(
         .json(&body)
         .header("qname-service", "1935233:65536")
         .header("qname-space", "Production")
-        .header("Cookie", "uin=; p_uin=; p_uid=; login_key_set_failed=AlreadyLogout")
+        .header("Cookie", "uin=; p_uin=; p_uid=")
+        .header("X-Requested-With","com.tencent.mobileqq")
+        .header("Sec-Fetch-Site","same-orgin")
+        .header("Sec-Fetch-Mode","cors")
+        .header("Sec-Fetch-Dest","empty")
+        .header("Referer","https://accounts.qq.com/login/attack?_wv=3&_wwv=128&envfrom=diff-protect&uin=11208120&sig=UC2DWj75QsUWR5ZSVuxLVGMc%2BJm606v50V8MYN1pFZyDWzFWsHZ2jqLYSA1zgubmgXkVFEx2P%2B0Y%2B8lJD5lmQizta%2F2aCwWnzsx3nSINpsK5ggRdyhs%2FbBmdWLlcnE5m9i1sjVDVoXMHdfb2YPZuiUl5qISSC8nQKX6I%2BNiRocIPbtaAfh6FMgnDVqe7I2HXn6EQlkUrdN7jaeJdsYA7LoLZ%2Fnk2OJsN%2FQH4JWwEnjoHQ%2F7dGLT%2Fvcmb9SxGAskdweRTqHrdcj0xubRxJgyMEHVKts93Gu314e1%2B6IKrn3O90wieXfPJDgot04xsCKAhsBQbetQ7332YVdyehL6OYCbDJuBmW3yX16AdPAN1KLk%3D")
         .send()
         .await
     {
@@ -283,6 +348,8 @@ pub async fn verify_mbphone(
     guid: String,
     mobile: String,
     area_code: String,
+    qimei: String,
+    subappid: String,
 ) -> APIResult<Value> {
     tracing::info!(version, sig, randstr, guid, mobile, area_code);
 
@@ -297,7 +364,22 @@ pub async fn verify_mbphone(
                     "uin": 0,
                     "sig": sig,
                     "sigType": 1,
-                "randstr": randstr,
+                    "randstr": randstr,
+                },
+                "device": {
+                    "guid": guid,
+                    "qimei": qimei,
+                    "qimei36": qimei,
+                    "subappid": subappid,
+                    "platform": "Android",
+                    "brand": "SAMSUNG",
+                    "model": "SM-S9210",
+                    "bssid": "",
+                    "devInfo": "SAMSUNG SM-S9210",
+                    "sysVersion": "32",
+                    "isGray": "false",
+                    "patchVersion": 0,
+                    "deviceLevel": 2
                 }
              },
             "mobile": mobile,
@@ -307,7 +389,12 @@ pub async fn verify_mbphone(
         .json(&body)
         .header("qname-service", "1935233:65536")
         .header("qname-space", "Production")
-        .header("Cookie", "uin=; p_uin=; p_uid=; login_key_set_failed=AlreadyLogout")
+        .header("Cookie", "uin=; p_uin=; p_uid=")
+        .header("X-Requested-With","com.tencent.mobileqq")
+        .header("Sec-Fetch-Site","same-orgin")
+        .header("Sec-Fetch-Mode","cors")
+        .header("Sec-Fetch-Dest","empty")
+        .header("Referer","https://accounts.qq.com/login/attack?_wv=3&_wwv=128&envfrom=diff-protect&uin=11208120&sig=UC2DWj75QsUWR5ZSVuxLVGMc%2BJm606v50V8MYN1pFZyDWzFWsHZ2jqLYSA1zgubmgXkVFEx2P%2B0Y%2B8lJD5lmQizta%2F2aCwWnzsx3nSINpsK5ggRdyhs%2FbBmdWLlcnE5m9i1sjVDVoXMHdfb2YPZuiUl5qISSC8nQKX6I%2BNiRocIPbtaAfh6FMgnDVqe7I2HXn6EQlkUrdN7jaeJdsYA7LoLZ%2Fnk2OJsN%2FQH4JWwEnjoHQ%2F7dGLT%2Fvcmb9SxGAskdweRTqHrdcj0xubRxJgyMEHVKts93Gu314e1%2B6IKrn3O90wieXfPJDgot04xsCKAhsBQbetQ7332YVdyehL6OYCbDJuBmW3yX16AdPAN1KLk%3D")
         .send()
         .await
     {
@@ -349,6 +436,8 @@ pub async fn get_sms(
     guid: String,
     area_code: String,
     phone_num: String,
+    qimei: String,
+    subappid: String,
 ) -> APIResult<Value> {
     tracing::info!(version, sig, randstr, guid, area_code, phone_num);
     let client = Client::new();
@@ -363,6 +452,21 @@ pub async fn get_sms(
                         "sig": sig,
                         "sigType": 1,
                         "randstr": randstr,
+                    },
+                    "device": {
+                        "guid": guid,
+                        "qimei": qimei,
+                        "qimei36": qimei,
+                        "subappid": subappid,
+                        "platform": "Android",
+                        "brand": "SAMSUNG",
+                        "model": "SM-S9210",
+                        "bssid": "",
+                        "devInfo": "SAMSUNG SM-S9210",
+                        "sysVersion": "32",
+                        "isGray": "false",
+                        "patchVersion": 0,
+                        "deviceLevel": 2
                     }
               },
                 "way": 4,
@@ -374,10 +478,12 @@ pub async fn get_sms(
         .json(&body)
         .header("qname-service", "1935233:65536")
         .header("qname-space", "Production")
-        .header(
-            "Cookie",
-            "uin=; p_uin=; p_uid=; login_key_set_failed=AlreadyLogout",
-        )
+        .header("Cookie", "uin=; p_uin=; p_uid=")
+        .header("X-Requested-With","com.tencent.mobileqq")
+        .header("Sec-Fetch-Site","same-orgin")
+        .header("Sec-Fetch-Mode","cors")
+        .header("Sec-Fetch-Dest","empty")
+        .header("Referer","https://accounts.qq.com/login/attack?_wv=3&_wwv=128&envfrom=diff-protect&uin=11208120&sig=UC2DWj75QsUWR5ZSVuxLVGMc%2BJm606v50V8MYN1pFZyDWzFWsHZ2jqLYSA1zgubmgXkVFEx2P%2B0Y%2B8lJD5lmQizta%2F2aCwWnzsx3nSINpsK5ggRdyhs%2FbBmdWLlcnE5m9i1sjVDVoXMHdfb2YPZuiUl5qISSC8nQKX6I%2BNiRocIPbtaAfh6FMgnDVqe7I2HXn6EQlkUrdN7jaeJdsYA7LoLZ%2Fnk2OJsN%2FQH4JWwEnjoHQ%2F7dGLT%2Fvcmb9SxGAskdweRTqHrdcj0xubRxJgyMEHVKts93Gu314e1%2B6IKrn3O90wieXfPJDgot04xsCKAhsBQbetQ7332YVdyehL6OYCbDJuBmW3yX16AdPAN1KLk%3D")
         .send()
         .await
     {
@@ -417,6 +523,8 @@ pub async fn chk_sms(
     guid: String,
     phone_num: String,
     area_code: String,
+    qimei: String,
+    subappid: String,
 ) -> APIResult<Value> {
     tracing::info!(version, sig, randstr, guid, area_code);
     let client = Client::new();
@@ -431,7 +539,22 @@ pub async fn chk_sms(
                     "sig": sig,
                     "sigType": 1,
                     "randstr": randstr,
-                }
+                },
+                "device": {
+                    "guid": guid,
+                    "qimei": qimei,
+                    "qimei36": qimei,
+                    "subappid": subappid,
+                    "platform": "Android",
+                    "brand": "SAMSUNG",
+                    "model": "SM-S9210",
+                    "bssid": "",
+                    "devInfo": "SAMSUNG SM-S9210",
+                    "sysVersion": "32",
+                    "isGray": "false",
+                    "patchVersion": 0,
+                    "deviceLevel": 2
+    }
             },
             "way": 4,
             "mobile": phone_num,
@@ -442,10 +565,12 @@ pub async fn chk_sms(
         .json(&body)
         .header("qname-service", "1935233:65536")
         .header("qname-space", "Production")
-        .header(
-            "Cookie",
-            "uin=; p_uin=; p_uid=; login_key_set_failed=AlreadyLogout",
-        )
+        .header("Cookie", "uin=; p_uin=; p_uid=")
+        .header("X-Requested-With","com.tencent.mobileqq")
+        .header("Sec-Fetch-Site","same-orgin")
+        .header("Sec-Fetch-Mode","cors")
+        .header("Sec-Fetch-Dest","empty")
+        .header("Referer","https://accounts.qq.com/login/attack?_wv=3&_wwv=128&envfrom=diff-protect&uin=11208120&sig=UC2DWj75QsUWR5ZSVuxLVGMc%2BJm606v50V8MYN1pFZyDWzFWsHZ2jqLYSA1zgubmgXkVFEx2P%2B0Y%2B8lJD5lmQizta%2F2aCwWnzsx3nSINpsK5ggRdyhs%2FbBmdWLlcnE5m9i1sjVDVoXMHdfb2YPZuiUl5qISSC8nQKX6I%2BNiRocIPbtaAfh6FMgnDVqe7I2HXn6EQlkUrdN7jaeJdsYA7LoLZ%2Fnk2OJsN%2FQH4JWwEnjoHQ%2F7dGLT%2Fvcmb9SxGAskdweRTqHrdcj0xubRxJgyMEHVKts93Gu314e1%2B6IKrn3O90wieXfPJDgot04xsCKAhsBQbetQ7332YVdyehL6OYCbDJuBmW3yX16AdPAN1KLk%3D")
         .send()
         .await
     {
@@ -485,10 +610,10 @@ pub async fn auth_diff_password(
     guid: String,
     qimei: String,
     phone_num: String,
-    appid: String,
+    subappid: String,
     key: String,
 ) -> APIResult<Value> {
-    tracing::info!(version, sig, randstr, guid, phone_num, appid);
+    tracing::info!(version, sig, randstr, guid, phone_num, subappid);
     let client = Client::new();
     let body = json!({
               "com": {
@@ -506,10 +631,16 @@ pub async fn auth_diff_password(
                     "guid": guid,
                     "qimei": qimei,
                     "qimei36": qimei,
-                    "subappid": appid,
+                    "subappid": subappid,
                     "platform": "Android",
-                    "brand": "March",
-                    "model": "7"
+                    "brand": "SAMSUNG",
+                    "model": "SM-S9210",
+                    "bssid": "",
+                    "devInfo": "SAMSUNG SM-S9210",
+                    "sysVersion": "32",
+                    "isGray": "false",
+                    "patchVersion": 0,
+                    "deviceLevel": 2
                 }
               },
                 "token": sig,
@@ -529,7 +660,12 @@ pub async fn auth_diff_password(
         .json(&body)
         .header("qname-service", "1935233:65536")
         .header("qname-space", "Production")
-        .header("Cookie", "uin=; p_uin=; p_uid=; login_key_set_failed=AlreadyLogout")
+        .header("Cookie", "uin=; p_uin=; p_uid=")
+        .header("X-Requested-With","com.tencent.mobileqq")
+        .header("Sec-Fetch-Site","same-orgin")
+        .header("Sec-Fetch-Mode","cors")
+        .header("Sec-Fetch-Dest","empty")
+        .header("Referer","https://accounts.qq.com/login/attack?_wv=3&_wwv=128&envfrom=diff-protect&uin=11208120&sig=UC2DWj75QsUWR5ZSVuxLVGMc%2BJm606v50V8MYN1pFZyDWzFWsHZ2jqLYSA1zgubmgXkVFEx2P%2B0Y%2B8lJD5lmQizta%2F2aCwWnzsx3nSINpsK5ggRdyhs%2FbBmdWLlcnE5m9i1sjVDVoXMHdfb2YPZuiUl5qISSC8nQKX6I%2BNiRocIPbtaAfh6FMgnDVqe7I2HXn6EQlkUrdN7jaeJdsYA7LoLZ%2Fnk2OJsN%2FQH4JWwEnjoHQ%2F7dGLT%2Fvcmb9SxGAskdweRTqHrdcj0xubRxJgyMEHVKts93Gu314e1%2B6IKrn3O90wieXfPJDgot04xsCKAhsBQbetQ7332YVdyehL6OYCbDJuBmW3yX16AdPAN1KLk%3D")
         .send()
         .await
     {
@@ -598,13 +734,18 @@ pub async fn login_verify1(
         .get("qimei")
         .and_then(|qimei| qimei.as_str())
         .unwrap_or("fde9508748b00283b2723a9210001b617301");
-
+    let subappid = param1
+        .get("subappid")
+        .and_then(|t2| t2.as_str())
+        .unwrap_or("537306651");
     let chkcaptchares = chk_captcha(
         version.to_string(),
         sig.to_string(),
         ticket.to_string(),
         randstr.to_string(),
         guid.to_string(),
+        qimei.to_string(),
+        subappid.to_string(),
     )
     .await;
     if chkcaptchares
@@ -617,17 +758,18 @@ pub async fn login_verify1(
         return chkcaptchares;
     }
 
-    let appid = param1
-        .get("appid")
-        .and_then(|t2| t2.as_str())
-        .unwrap_or("537306651");
+    let timestamp = param1
+        .get("timestamp")
+        .and_then(|t2| t2.as_i64())
+        .unwrap_or(114514);
     let chkriskres = chk_risk(
         version.to_string(),
         sig.to_string(),
         qimei.to_string(),
         randstr.to_string(),
         guid.to_string(),
-        appid.to_string(),
+        subappid.to_string(),
+        timestamp,
     )
     .await;
     if chkriskres
@@ -644,6 +786,8 @@ pub async fn login_verify1(
         sig.to_string(),
         randstr.to_string(),
         guid.to_string(),
+        qimei.to_string(),
+        subappid.to_string(),
     )
     .await;
     if queryloginverifymethodres
@@ -696,6 +840,11 @@ pub async fn login_verify2(
         .get("phoneNum")
         .and_then(|t| t.as_str())
         .unwrap_or("");
+    let qimei = param1.get("qimei").and_then(|t| t.as_str()).unwrap_or("");
+    let subappid = param1
+        .get("subappid")
+        .and_then(|t| t.as_str())
+        .unwrap_or("");
     let verifymbphoneres = verify_mbphone(
         version.to_string(),
         sig.to_string(),
@@ -703,6 +852,8 @@ pub async fn login_verify2(
         guid.to_string(),
         mobile.to_string(),
         area_code.to_string(),
+        qimei.to_string(),
+        subappid.to_string(),
     )
     .await;
     if verifymbphoneres
@@ -721,6 +872,8 @@ pub async fn login_verify2(
         guid.to_string(),
         area_code.to_string(),
         phone_num.to_string(),
+        qimei.to_string(),
+        subappid.to_string(),
     )
     .await;
     get_sms_res
@@ -746,13 +899,16 @@ pub async fn login_verify3(
         .and_then(|t| t.as_str())
         .unwrap_or("9.2.5");
     let sig = param1.get("sig").and_then(|t| t.as_str()).unwrap_or("");
-    let randomstr = param1.get("randstr").and_then(|t| t.as_str()).unwrap_or("");
+    let randstr = param1.get("randstr").and_then(|t| t.as_str()).unwrap_or("");
     let guid = param1.get("guid").and_then(|t| t.as_str()).unwrap_or("");
     let area_code = param1
         .get("areaCode")
         .and_then(|t| t.as_str())
         .unwrap_or("");
-    let appid = param1.get("appid").and_then(|t| t.as_str()).unwrap_or("");
+    let subappid = param1
+        .get("subappid")
+        .and_then(|t| t.as_str())
+        .unwrap_or("");
     let phone_num = param1
         .get("phoneNum")
         .and_then(|t| t.as_str())
@@ -761,10 +917,12 @@ pub async fn login_verify3(
     let chk_smsres = chk_sms(
         version.to_string(),
         sig.to_string(),
-        randomstr.to_string(),
+        randstr.to_string(),
         guid.to_string(),
         phone_num.to_string(),
         area_code.to_string(),
+        qimei.to_string(),
+        subappid.to_string(),
     )
     .await;
     if chk_smsres
@@ -784,11 +942,11 @@ pub async fn login_verify3(
     let auth_diff_password_res = auth_diff_password(
         version.to_string(),
         sig.to_string(),
-        randomstr.to_string(),
+        randstr.to_string(),
         guid.to_string(),
         qimei.to_string(),
         phone_num.to_string(),
-        appid.to_string(),
+        subappid.to_string(),
         key.to_string(),
     )
     .await;
