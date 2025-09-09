@@ -2,18 +2,18 @@ mod handle;
 mod mystruct;
 mod route;
 use crate::route::creatroute;
-
 use std::net::SocketAddr;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use tracing::{Level, info};
+use tracing_subscriber::FmtSubscriber;
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::registry()
-        .with(tracing_subscriber::fmt::layer())
-        .with(
-            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
-        )
-        .init();
+    let subscriber = FmtSubscriber::builder()
+        .with_ansi(false)
+        .with_max_level(Level::DEBUG)
+        .finish();
+
+    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     tracing::info!("服务器监听于 {}", addr);
